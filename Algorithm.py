@@ -67,9 +67,11 @@ def build_sigma1(sigma_star, gamma, A):
     value = sum(A[i][sigma1[i]] for i in range(n))
     return sigma1, value
 
-def find_optimal_pair(A):
+def find_optimal_pair(A, k):
     """
     Основной алгоритм: поиск двух перестановок с максимальной суммой по описанному методу.
+    Возвращает оптимальные перестановки, SMAX и значение S по формуле:
+    S = сумма всех элементов матрицы - ((k - 1) / k) * SMAX
     """
     n = len(A)
     sigma_star, value_star = assignment_max(A)
@@ -85,7 +87,10 @@ def find_optimal_pair(A):
             SMAX = total
             best_pair = (sigma1, sigma2)
 
-    return best_pair, SMAX
+    total_sum = np.sum(A)
+    S = total_sum - ((k - 1) / k) * SMAX
+
+    return best_pair, SMAX, S
 
 # Пример использования
 if __name__ == "__main__":
@@ -94,9 +99,10 @@ if __name__ == "__main__":
         [4, 5, 4],
         [2, 4, 5]
     ])
-
-    (sigma1, sigma2), smax = find_optimal_pair(A)
+    k = 2
+    (sigma1, sigma2), smax, S = find_optimal_pair(A, k)
     print("Оптимальные перестановки:")
     print("sigma1:", sigma1)
     print("sigma2:", sigma2)
-    print("Максимальная сумма:", smax)
+    print("Максимальная сумма (S7):", smax)
+    print("Вычисленное значение минимальной ОМ противника:", S)
