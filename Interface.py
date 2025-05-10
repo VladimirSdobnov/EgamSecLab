@@ -14,24 +14,28 @@ class LabApp:
         self.input_frame.pack()
 
         # Коэффициент
-        ttk.Label(self.input_frame, text="Коэффициент:").grid(row=0, column=0, sticky=tk.W, padx=5, pady=5)
+        ttk.Label(self.input_frame, text="Коэффициент понижения \nогневой мощи противника:").grid(row=0, column=0, sticky=tk.W, padx=5, pady=5)
         self.coefficient_entry = ttk.Entry(self.input_frame, width=10)
         self.coefficient_entry.grid(row=0, column=1, sticky=tk.W, padx=5, pady=5)
+        self.coefficient_entry.insert(0,"2")
 
         # Размер матрицы
         ttk.Label(self.input_frame, text="Размер матрицы:").grid(row=1, column=0, sticky=tk.W, padx=5, pady=5)
         self.size_entry = ttk.Entry(self.input_frame, width=10)
         self.size_entry.grid(row=1, column=1, sticky=tk.W, padx=5, pady=5)
+        self.size_entry.insert(0, "3")
 
         # Минимум
         ttk.Label(self.input_frame, text="Минимум:").grid(row=2, column=0, sticky=tk.W, padx=5, pady=5)
         self.min_entry = ttk.Entry(self.input_frame, width=10)
         self.min_entry.grid(row=2, column=1, sticky=tk.W, padx=5, pady=5)
+        self.min_entry.insert(0, "1")
 
         # Максимум
         ttk.Label(self.input_frame, text="Максимум:").grid(row=3, column=0, sticky=tk.W, padx=5, pady=5)
         self.max_entry = ttk.Entry(self.input_frame, width=10)
         self.max_entry.grid(row=3, column=1, sticky=tk.W, padx=5, pady=5)
+        self.max_entry.insert(0, "10")
 
         # === Матрица ===
         self.matrix_frame = ttk.Frame(master, padding=10)
@@ -72,16 +76,20 @@ class LabApp:
         self.matrix_button_frame = ttk.Frame(self.matrix_inner_frame)
         self.matrix_button_frame.grid(row=0, column=0, columnspan=2, pady=5)
 
-        ttk.Button(self.matrix_button_frame, text="Создать матрицу", command=self.create_matrix).grid(row=0, column=0, padx=5, pady=5)
-        ttk.Button(self.matrix_button_frame, text="Автозаполнение", command=self.auto_populate_matrix).grid(row=0, column=1, padx=5, pady=5)
+        button_frame = ttk.Frame(self.input_frame) # Добавляем фрейм для кнопок
+        button_frame.grid(row=4, column=0, columnspan=3, sticky="ew", padx=5, pady=5) # columnspan чтобы растянуть на всю ширину
+
+        self.create_button = ttk.Button(button_frame, text="Создать матрицу", command=self.create_matrix)
+        self.auto_button = ttk.Button(button_frame, text="Автозаполнение", command=self.auto_populate_matrix)
+        self.calculate_button = ttk.Button(button_frame, text="Вычислить", command=self.calculate)
+
+        self.create_button.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0,5))  # Левый отступ только у первой кнопки
+        self.auto_button.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+        self.calculate_button.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
 
         # === Таблица вывода результата ===
         self.result_frame = ttk.Frame(master, padding=10)
         self.result_frame.pack(fill=tk.BOTH, expand=True)
-
-        # === Кнопка "Вычислить" ===
-        self.calculate_button = ttk.Button(master, text="Вычислить", command=self.calculate)
-        self.calculate_button.pack(pady=10)
 
     def scroll_function(self, event=None):
         self.matrix_canvas.configure(scrollregion=self.matrix_canvas.bbox("all"))
@@ -105,11 +113,6 @@ class LabApp:
             widget.destroy()
 
         # Кнопки управления матрицей (пересоздаем, чтобы не дублировались)
-        self.matrix_button_frame = ttk.Frame(self.matrix_inner_frame)
-        self.matrix_button_frame.grid(row=0, column=0, columnspan=self.matrix_size, pady=5)
-        ttk.Button(self.matrix_button_frame, text="Создать матрицу", command=self.create_matrix).grid(row=0, column=0, padx=5, pady=5)
-        ttk.Button(self.matrix_button_frame, text="Автозаполнение", command=self.auto_populate_matrix).grid(row=0, column=1, padx=5, pady=5)
-
         self.matrix_entries = []
         self.matrix = np.zeros((self.matrix_size, self.matrix_size))
 
@@ -164,13 +167,18 @@ class LabApp:
             # Генерируем матрицу из нулей и единиц
             binary_matrix = np.zeros((self.matrix_size, self.matrix_size), dtype=int)
             for i in range(self.matrix_size):
-                binary_matrix[sigma1[i] - 1 ][sigma2[i] - 1 ] = 1
+                binary_matrix[i][sigma1[i]] += 1
+                binary_matrix[i][sigma2[i]] += 2
 
             # Применяем стили к ячейкам в зависимости от значений в binary_matrix
             for i in range(self.matrix_size):
                 for j in range(self.matrix_size):
                     if binary_matrix[i][j] == 1:
-                        self.matrix_entries[i][j].configure(bg="lightgreen")  # Используем bg для tk.Entry
+                        self.matrix_entries[i][j].configure(bg="green3")  # Используем bg для tk.Entry
+                    elif binary_matrix[i][j] == 2:
+                        self.matrix_entries[i][j].configure(bg="red2")
+                    elif binary_matrix[i][j] == 3:
+                        self.matrix_entries[i][j].configure(bg="orange")
                     else:
                         self.matrix_entries[i][j].configure(bg="white")  # Возвращаем стандартный цвет фона
 
@@ -179,12 +187,15 @@ class LabApp:
                 widget.destroy()
 
             # Создаем таблицу результатов с помощью grid
-            ttk.Label(self.result_frame, text="№").grid(row=0, column=0, padx=5, pady=5)  # Заголовок первого столбца
-            ttk.Label(self.result_frame, text="Значение").grid(row=1, column=0, padx=5, pady=5)
+            ttk.Label(self.result_frame, text="σ-1").grid(row=0, column=0, padx=5, pady=5)  # Заголовок первого столбца
+            ttk.Label(self.result_frame, text="σ-2").grid(row=1, column=0, padx=5, pady=5)
 
             for i in range(self.matrix_size):
                 ttk.Label(self.result_frame, text=str(sigma1[i]+1)).grid(row=0, column=i + 1, padx=5, pady=5)  # Номер
                 ttk.Label(self.result_frame, text=str(sigma2[i]+1)).grid(row=1, column=i + 1, padx=5, pady=5)  # Значение
+            ttk.Label(self.result_frame, text="Минимальная огневая мощь противника после обстрела:   " + str(s)).grid(row=0, column=self.matrix_size+1, padx=5, pady=5)  # Номер
+            ttk.Label(self.result_frame, text="Сумма элементов перестановок:   " + str(smax)).grid(row=1, column=self.matrix_size+1, padx=5, pady=5)  # Значение
+            ttk.Label()
 
         except ValueError as e:
             messagebox.showerror("Ошибка", f"Ошибка ввода: {e}")
