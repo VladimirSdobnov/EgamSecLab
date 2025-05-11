@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.optimize import linear_sum_assignment
+import time
 
 def assignment_max(A):
     """
@@ -70,9 +71,10 @@ def build_sigma1(sigma_star, gamma, A):
 def find_optimal_pair(A, k):
     """
     Основной алгоритм: поиск двух перестановок с максимальной суммой по описанному методу.
-    Возвращает оптимальные перестановки, SMAX и значение S по формуле:
-    S = сумма всех элементов матрицы - ((k - 1) / k) * SMAX
+    Возвращает также время выполнения.
     """
+    start_time = time.time()
+
     n = len(A)
     sigma_star, value_star = assignment_max(A)
     sigma0, value0 = build_conjugate_sigma(sigma_star, A)
@@ -90,7 +92,10 @@ def find_optimal_pair(A, k):
     total_sum = np.sum(A)
     S = total_sum - ((k - 1) / k) * SMAX
 
-    return best_pair, SMAX, S
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+
+    return best_pair, SMAX, S, elapsed_time
 
 # Пример использования
 if __name__ == "__main__":
@@ -100,9 +105,10 @@ if __name__ == "__main__":
         [2, 4, 5]
     ])
     k = 2
-    (sigma1, sigma2), smax, S = find_optimal_pair(A, k)
+    (sigma1, sigma2), smax, S, elapsed_time = find_optimal_pair(A, k)
     print("Оптимальные перестановки:")
     print("sigma1:", sigma1)
     print("sigma2:", sigma2)
     print("Максимальная сумма (S7):", smax)
     print("Вычисленное значение минимальной ОМ противника:", S)
+    print("Время:", elapsed_time)
