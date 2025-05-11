@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, font
 from tkinter import messagebox
 import numpy as np
 import Algorithm as alg
@@ -9,31 +9,35 @@ class LabApp:
         self.master = master
         master.title("Лабораторная работа")
 
+        #Шрифты и стили
+        f1 = font.Font(family="Arial", size=15)
+        style = ttk.Style()
+        style.configure("TButton",font=("Arial", 15))
         # === Поля для ввода ===
         self.input_frame = ttk.Frame(master, padding=10)
-        self.input_frame.pack()
+        self.input_frame.pack(side=tk.TOP, anchor=tk.NW, fill=tk.NONE, expand=False)
 
         # Коэффициент
-        ttk.Label(self.input_frame, text="Коэффициент понижения \nогневой мощи противника:").grid(row=0, column=0, sticky=tk.W, padx=5, pady=5)
-        self.coefficient_entry = ttk.Entry(self.input_frame, width=10)
+        ttk.Label(self.input_frame, text="Коэффициент понижения \nогневой мощи противника:", font=f1).grid(row=0, column=0, sticky=tk.W, padx=5, pady=5)
+        self.coefficient_entry = ttk.Entry(self.input_frame, width=10, font=f1)
         self.coefficient_entry.grid(row=0, column=1, sticky=tk.W, padx=5, pady=5)
         self.coefficient_entry.insert(0,"2")
 
         # Размер матрицы
-        ttk.Label(self.input_frame, text="Размер матрицы:").grid(row=1, column=0, sticky=tk.W, padx=5, pady=5)
-        self.size_entry = ttk.Entry(self.input_frame, width=10)
+        ttk.Label(self.input_frame, text="Размер матрицы:", font=f1).grid(row=1, column=0, sticky=tk.W, padx=5, pady=5)
+        self.size_entry = ttk.Entry(self.input_frame, width=10, font=f1)
         self.size_entry.grid(row=1, column=1, sticky=tk.W, padx=5, pady=5)
         self.size_entry.insert(0, "3")
 
         # Минимум
-        ttk.Label(self.input_frame, text="Минимум:").grid(row=2, column=0, sticky=tk.W, padx=5, pady=5)
-        self.min_entry = ttk.Entry(self.input_frame, width=10)
+        ttk.Label(self.input_frame, text="Минимум:", font=f1).grid(row=2, column=0, sticky=tk.W, padx=5, pady=5)
+        self.min_entry = ttk.Entry(self.input_frame, width=10, font=f1)
         self.min_entry.grid(row=2, column=1, sticky=tk.W, padx=5, pady=5)
         self.min_entry.insert(0, "1")
 
         # Максимум
-        ttk.Label(self.input_frame, text="Максимум:").grid(row=3, column=0, sticky=tk.W, padx=5, pady=5)
-        self.max_entry = ttk.Entry(self.input_frame, width=10)
+        ttk.Label(self.input_frame, text="Максимум:", font=f1).grid(row=3, column=0, sticky=tk.W, padx=5, pady=5)
+        self.max_entry = ttk.Entry(self.input_frame, width=10, font=f1)
         self.max_entry.grid(row=3, column=1, sticky=tk.W, padx=5, pady=5)
         self.max_entry.insert(0, "10")
 
@@ -100,6 +104,7 @@ class LabApp:
 
     def create_matrix(self):
         """Создает матрицу Entry виджетов."""
+        f1 = font.Font(family="Arial", size=15)
         try:
             self.matrix_size = int(self.size_entry.get())
             if self.matrix_size <= 0:
@@ -119,7 +124,7 @@ class LabApp:
         for i in range(self.matrix_size):
             row_entries = []
             for j in range(self.matrix_size):
-                entry = tk.Entry(self.matrix_inner_frame, width=5) #  Используем tk.Entry
+                entry = tk.Entry(self.matrix_inner_frame, width=5, font=f1) #  Используем tk.Entry
                 entry.grid(row=i + 1, column=j, padx=2, pady=2)
                 row_entries.append(entry)
             self.matrix_entries.append(row_entries)
@@ -148,6 +153,7 @@ class LabApp:
 
     def calculate(self):
         """Обработчик нажатия кнопки "Вычислить"."""
+        f1 = font.Font(family="Arial", size=15)
         try:
             coefficient = float(self.coefficient_entry.get())
             matrix_values = []
@@ -162,7 +168,7 @@ class LabApp:
                         return
                 matrix_values.append(row_values)
             matrix = np.array(matrix_values)
-            (sigma1, sigma2), smax, s = alg.find_optimal_pair(matrix, float(self.coefficient_entry.get()))
+            (sigma1, sigma2), smax, s, elapsed_time = alg.find_optimal_pair(matrix, float(self.coefficient_entry.get()))
 
             # Генерируем матрицу из нулей и единиц
             binary_matrix = np.zeros((self.matrix_size, self.matrix_size), dtype=int)
@@ -187,14 +193,15 @@ class LabApp:
                 widget.destroy()
 
             # Создаем таблицу результатов с помощью grid
-            ttk.Label(self.result_frame, text="σ-1").grid(row=0, column=0, padx=5, pady=5)  # Заголовок первого столбца
-            ttk.Label(self.result_frame, text="σ-2").grid(row=1, column=0, padx=5, pady=5)
+            ttk.Label(self.result_frame, text="σ₁", font=f1).grid(row=0, column=0, padx=5, pady=5)  # Заголовок первого столбца
+            ttk.Label(self.result_frame, text="σ₂", font=f1).grid(row=1, column=0, padx=5, pady=5)
 
             for i in range(self.matrix_size):
-                ttk.Label(self.result_frame, text=str(sigma1[i]+1)).grid(row=0, column=i + 1, padx=5, pady=5)  # Номер
-                ttk.Label(self.result_frame, text=str(sigma2[i]+1)).grid(row=1, column=i + 1, padx=5, pady=5)  # Значение
-            ttk.Label(self.result_frame, text="Минимальная огневая мощь противника после обстрела:   " + str(s)).grid(row=0, column=self.matrix_size+1, padx=5, pady=5)  # Номер
-            ttk.Label(self.result_frame, text="Сумма элементов перестановок:   " + str(smax)).grid(row=1, column=self.matrix_size+1, padx=5, pady=5)  # Значение
+                ttk.Label(self.result_frame, text=str(sigma1[i]+1), font=f1).grid(row=0, column=i + 1, padx=5, pady=5)  # Номер
+                ttk.Label(self.result_frame, text=str(sigma2[i]+1), font=f1).grid(row=1, column=i + 1, padx=5, pady=5)  # Значение
+            ttk.Label(self.result_frame, text="Минимальная огневая мощь противника после обстрела:   " + str(s), font=f1).grid(row=0, column=self.matrix_size+1, padx=5, pady=5)  # Номер
+            ttk.Label(self.result_frame, text="Сумма элементов перестановок:   " + str(smax), font=f1).grid(row=1, column=self.matrix_size+1, padx=5, pady=5)  # Значение
+            ttk.Label(self.result_frame, text="Время работы алгоритма:   " + str(elapsed_time), font=f1).grid(row=2, column=self.matrix_size+1, padx=5, pady=5)  # Время
             ttk.Label()
 
         except ValueError as e:
